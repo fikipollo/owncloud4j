@@ -20,7 +20,7 @@ public class WebDAVResponse {
     private byte[] responseBinary;
     private InputStream responseStream;
     private boolean success = false;
-    private ArrayList<FileInfo> items;
+    private ArrayList<OCFile> items;
 
     public WebDAVResponse() {
         
@@ -72,15 +72,15 @@ public class WebDAVResponse {
         this.responseBinary = responseBinary;
     }
     
-    public ArrayList<FileInfo> getItems() {
+    public ArrayList<OCFile> getItems() {
         return items;
     }
 
-    public void setItems(ArrayList<FileInfo> items) {
+    public void setItems(ArrayList<OCFile> items) {
         this.items = items;
     }
 
-    public void addItem(FileInfo item) {
+    public void addItem(OCFile item) {
         if(this.items == null){
             this.items = new ArrayList<>();
         }

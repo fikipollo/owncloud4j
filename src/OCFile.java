@@ -11,14 +11,14 @@ import java.util.HashMap;
  *
  * @author rhernandez
  */
-public class FileInfo {
+public class OCFile {
 
     private String path;
     private String name;
     private String fileType;
     private HashMap<String, String> attributes;
 
-    public FileInfo(String path, String fileType, HashMap<String, String> attributes) {
+    public OCFile(String path, String fileType, HashMap<String, String> attributes) {
         this.path = path.replaceAll("\\/$", "");
         this.name = path.substring(path.lastIndexOf("/")+1);
         this.fileType = fileType;
@@ -51,6 +51,14 @@ public class FileInfo {
 
     public void setFileType(String fileType) {
         this.fileType = fileType;
+    }
+    
+    public boolean isDirectory(){
+        return "dir".equals(this.fileType);
+    }    
+
+    public boolean isFile(){
+        return "file".equals(this.fileType);
     }
 
     public HashMap<String, String> getAttributes() {

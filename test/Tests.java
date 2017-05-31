@@ -16,39 +16,63 @@ public class Tests {
 
     public static void main(String[] args) {
         try {
+            boolean success;
+            WebDAVResponse response;
+            String content;
+            
             Owncloud4j client = new Owncloud4j("localhost", 8085, "/remote.php/webdav");
             client.login("rafa", "123123");
 
             //********************************************************************************************
             // FILES
             //********************************************************************************************
-            //Test 1. list root with infinite option 
-            WebDAVResponse response = client.list("/"); //TODO: NOT WORKING!!
-            //Test 2. list dir with max 2 child
-            response = client.list("/testdir/", 2);
+            //Test 1. Create a new dirs
+            success = client.mkdir("/testdir/");
+            success = client.mkdir("/testdir/child_1");
 
-            //Test 3. Get information for an specific file
-            response = client.fileInfo("/testdir/remotefile.txt");
-            //Test 4. Get content for a file as string
-            String content = client.getFileContents("/testdir/remotefile.txt");
+            //Test 2. Upload local file 
+            //  A - Valid remote dir, valid local file
+            success = client.putFile("/testdir/", "/data/test/test.txt");
+            //  B - Valid remote dir, valid local file, change remote name 
+            success = client.putFile("/testdir/child_1/other_test.txt", "/data/test/test.txt");
+            //  C - Valid remote dir, invalid local file
+            success = client.putFile("/testdir/", "/data/test/fakefile.txt");
+            //  D - Invalid remote dir, valid local file
+            success = client.putFile("/testdir/fakedir/", "/data/test/test.text");
+            //  E - Valid remote dir, invalid local file (directory)
+            success = client.putFile("/testdir/", "/data/child_2");
 
-            //Test 5. Download file to local directory (valid remote file, valid local dir)
-            boolean success = client.getFile("/Documents/Example.odt", "/home/rhernandez/Desktop/caca/tmp");
-            //Test 6. Download file to local directory (invalid remote file, valid local dir)
-            success = client.getFile("/Documents/Example1.odt", "/home/rhernandez/Desktop/caca/tmp/");
-            //Test 7. Download file to local directory (invalid remote file (dir), valid local dir)
-            success = client.getFile("/Documents/", "/home/rhernandez/Desktop/caca/tmp");
+            //Test 3. List directories
+            //  A - list root with infinite option 
+            //TODO: NOT WORKING PROPERLY!!
+            response = client.list("/"); 
+            //  B - list dir with max 3 child
+            response = client.list("/testdir/", 3);
 
-            //Test 8. Upload local file (valid remote dir, valid local file)
-            success = client.putFile("/Documents/", "/home/rhernandez/Desktop/caca/tmp/protein.csv");
-            //Test 9. Upload local file (valid remote dir, valid local file (dir), change remote name)
-            success = client.putFile("/Documents/test.csv", "/home/rhernandez/Desktop/caca/tmp/protein.csv");
-            //Test 10. Upload local file (valid remote dir, invalid local file)
-            success = client.putFile("/Documents/", "/home/rhernandez/Desktop/caca/tmp/remotefilke.txt");
-            //Test 11. Upload local file (invalid remote dir, valid local file)
-            success = client.putFile("/Documentsa/", "/home/rhernandez/Desktop/caca/tmp/protein.csv");
-            //Test 12. Upload local file (valid remote dir, invalid local file (dir))
-            success = client.putFile("/Documents/", "/home/rhernandez/Desktop/caca/tmp");
+            //Test 4. Get data
+            //  A - Get information for an specific file
+            response = client.fileInfo("/testdir/test.txt");
+            //  B - Get content for a file as string
+            content = client.getFileContents("/testdir/test.txt");
+
+            //Test 5. Download data to local directory 
+            //  A - Valid remote file, valid local dir
+            success = client.getFile("/testdir/test.txt", "/tmp/");
+            //  B - Invalid remote file, valid local dir
+            success = client.getFile("/testdir/fakefile.txt", "/tmp/");
+            //  C - Invalid remote file (directory), valid local dir
+            success = client.getFile("/testdir/", "/tmp");
+            //  D - Valid remote file, invalid local dir)
+            success = client.getFile("/testdir/test.txt", "/tmp/test2/");
+            
+            //Test 6. Delete remote files or dir
+            //  A - Valid remote file
+            success = client.delete("/testdir/test.txt");
+            //  B - Invalid remote file
+            success = client.delete("/testdir/test2.txt");
+            //  C - Valid remote dir
+            success = client.delete("/testdir/");
+
 
             return;
         } catch (Exception ex) {

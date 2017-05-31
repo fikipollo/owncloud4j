@@ -15,7 +15,6 @@
  *  More info https://github.com/fikipollo/owncloud4j
  *  *************************************************************** */
 
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -61,7 +60,6 @@ import org.apache.jackrabbit.webdav.client.methods.VersionControlMethod;
  * http://svn.bonitasoft.org/bonita-connectors/tags/bonita-connectors-5.1/webdav/src/main/java/org/bonitasoft/connectors/webdav/common/WebDAVClient.java
  * https://hc.apache.org/httpclient-3.x/apidocs/
  */
-
 public class Owncloud4j {
 
     //********************************************************************************************
@@ -279,93 +277,33 @@ public class Owncloud4j {
 
 //  - 
 //  - TODO: put_directory
-//  - TODO: mkdir
-//  - TODO: delete
+    
+    /**
+     * Creates a remote directory.
+     * @param path path to the remote directory to create
+     * @return true if the operation succeeded, false otherwise
+     * @throws Exception 
+     */
+    public boolean mkdir(String path) throws Exception {
+        //Directories must end with "/"
+        path = path.replaceAll("\\/$", "") + "/";
+        return this.makeDavRequest("MKCOL", path, null).isSuccess();
+    }
+    
+    /**
+     * Deletes a remote file or directory.
+     * @param remotePath path to the file or directory to delete
+     * @return true if the operation succeeded, false otherwise
+     * @throws Exception 
+     */
+    public boolean delete(String remotePath) throws Exception {
+        return this.makeDavRequest("DELETE", remotePath, null).isSuccess();
+    }
+
 //  - TODO: move
 //  - TODO: copy
 //  - TODO: move
-//    public WebDAVResponse createFolder(String parentUri, String newFoldersName) throws Exception {
-//        MkColMethod httpMethod = new MkColMethod(parentUri + newFoldersName);
-//        client.executeMethod(httpMethod);
-//
-//        WebDAVResponse objResponse = processDavResponse(httpMethod, true);
-//        httpMethod.releaseConnection();
-//        return objResponse;
-//    }
-//
-//    /**
-//     * To delete either a folder or a file
-//     * 
-//     * @param uri
-//     * @return 
-//     * @throws Exception
-//     */
-//    public WebDAVResponse deleteItem(String uri) throws Exception {
-//        DeleteMethod httpMethod = new DeleteMethod(uri);
-//        client.executeMethod(httpMethod);
-//
-//        WebDAVResponse objResponse = processDavResponse(httpMethod, true);
-//        httpMethod.releaseConnection();
-//        return objResponse;
-//    }
-//
-//    public WebDAVResponse checkout(String uri) throws Exception {
-//        CheckoutMethod httpMethod = new CheckoutMethod(uri);
-//        client.executeMethod(httpMethod);
-//
-//        WebDAVResponse objResponse = processDavResponse(httpMethod, true);
-//        httpMethod.releaseConnection();
-//        return objResponse;
-//    }
-//
-//    public WebDAVResponse checkin(String uri) throws Exception {
-//        CheckinMethod httpMethod = new CheckinMethod(uri);
-//        client.executeMethod(httpMethod);
-//
-//        WebDAVResponse objResponse = processDavResponse(httpMethod, true);
-//        httpMethod.releaseConnection();
-//        return objResponse;
-//    }
-//
-//    public WebDAVResponse cancelCheckout(String uri) throws Exception {
-//        UncheckoutMethod httpMethod = new UncheckoutMethod(uri);
-//        client.executeMethod(httpMethod);
-//
-//        WebDAVResponse objResponse = processDavResponse(httpMethod, true);
-//        httpMethod.releaseConnection();
-//        return objResponse;
-//    }
-//
-//    public WebDAVResponse report(String uri) throws Exception {
-//        ReportInfo reportInfo = new ReportInfo(ReportType.VERSION_TREE);
-//
-//        ReportMethod httpMethod = new ReportMethod(uri, reportInfo);
-//        client.executeMethod(httpMethod);
-//
-//        WebDAVResponse objResponse = processDavResponse(httpMethod, false);
-//
-//        MultiStatus multiStatus = httpMethod.getResponseBodyAsMultiStatus();
-//        MultiStatusResponse responses[] = multiStatus.getResponses();
-//
-//        String responseAsString = "";
-//        for (int i = 0; i < responses.length; i++) {
-//            responseAsString += responses[i].getHref() + "\n";
-//        }
-//
-//        ((WebDAVResponse) objResponse).setResponse(responseAsString);
-//        httpMethod.releaseConnection();
-//        return objResponse;
-//        return null;
-//    }
-//
-//    public WebDAVResponse versionControl(String uri) throws Exception {
-//        VersionControlMethod httpMethod = new VersionControlMethod(uri);
-//        client.executeMethod(httpMethod);
-//
-//        WebDAVResponse objResponse = processDavResponse(httpMethod, true);
-//        httpMethod.releaseConnection();
-//        return objResponse;
-//    }
+
     /**
      * This function sends a new WebDAV request to the server.
      * @param methodName the method to execute (e.g. GET, PUT, PROPFIND)
@@ -422,6 +360,10 @@ public class Owncloud4j {
                 return new GetMethod(path);
             case "PUT":
                 return new PutMethod(path);
+            case "DELETE":
+                return new DeleteMethod(path);
+            case "MKCOL":
+                return new MkColMethod(path);
         }
         return null;
     }
@@ -484,7 +426,7 @@ public class Owncloud4j {
         return response;
     }
 
-    private FileInfo processDavResponseElement(MultiStatusResponse response) {
+    private OCFile processDavResponseElement(MultiStatusResponse response) {
         String href = response.getHref();
         String fileType = "file";
         if (href.endsWith("/")) {
@@ -497,7 +439,7 @@ public class Owncloud4j {
         //for attr in attrs:
         //    file_attrs[attr.tag] = attr.text
 
-        return new FileInfo(href, fileType, null);
+        return new OCFile(href, fileType, null);
     }
 
 }

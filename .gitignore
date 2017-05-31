@@ -2,3 +2,5 @@
 /nbproject/
 build.xml
 manifest.mf
+jackrabbit.log_IS_UNDEFINED
+jetty.log_IS_UNDEFINED
