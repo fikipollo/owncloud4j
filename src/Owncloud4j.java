@@ -40,15 +40,11 @@ import org.apache.commons.io.FileUtils;
 import org.apache.jackrabbit.webdav.DavException;
 import org.apache.jackrabbit.webdav.MultiStatus;
 import org.apache.jackrabbit.webdav.MultiStatusResponse;
-import org.apache.jackrabbit.webdav.client.methods.CheckinMethod;
-import org.apache.jackrabbit.webdav.client.methods.CheckoutMethod;
 import org.apache.jackrabbit.webdav.client.methods.DavMethod;
 import org.apache.jackrabbit.webdav.client.methods.DeleteMethod;
 import org.apache.jackrabbit.webdav.client.methods.MkColMethod;
 import org.apache.jackrabbit.webdav.client.methods.PropFindMethod;
 import org.apache.jackrabbit.webdav.client.methods.PutMethod;
-import org.apache.jackrabbit.webdav.client.methods.UncheckoutMethod;
-import org.apache.jackrabbit.webdav.client.methods.VersionControlMethod;
 
 /**
  *
@@ -275,9 +271,23 @@ public class Owncloud4j {
         }
     }
 
+    /**
+    Upload a file.
+    @param remotePath path to the target file. A target directory can also be specified instead by appending a "/"
+    @param localPath path to the local file to upload
+    @param createDirs if true, the required directories will be auto-created
+    @return
+    @throws Exception 
+     */
+    public boolean putFile(String remotePath, String localPath, boolean createDirs) throws Exception {
+        if (createDirs) {
+            this.mkdir(remotePath, true);
+        }
+        return this.putFile(remotePath, localPath);
+    }
+
 //  - 
 //  - TODO: put_directory
-    
     /**
      * Creates a remote directory.
      * @param path path to the remote directory to create
@@ -289,7 +299,28 @@ public class Owncloud4j {
         path = path.replaceAll("\\/$", "") + "/";
         return this.makeDavRequest("MKCOL", path, null).isSuccess();
     }
-    
+
+    /**
+     * Creates a remote directory recursively.
+     * @param path path to the remote directory to create
+     * @param recursive if true, the required directories will be auto-created
+     * @return true if the operation succeeded, false otherwise
+     * @throws Exception 
+     */
+    public boolean mkdir(String path, boolean recursive) throws Exception {
+        path = path.substring(0, path.lastIndexOf("/") +1);
+        String[] dirs = path.split("\\/");
+        String _remotePath = "/";
+        boolean success=true;
+        for (String dir : dirs) {
+            if (!"".equals(dir)) {
+                _remotePath += dir + "/";
+                success = this.mkdir(_remotePath);
+            }
+        }
+        return success;
+    }
+
     /**
      * Deletes a remote file or directory.
      * @param remotePath path to the file or directory to delete
@@ -303,7 +334,6 @@ public class Owncloud4j {
 //  - TODO: move
 //  - TODO: copy
 //  - TODO: move
-
     /**
      * This function sends a new WebDAV request to the server.
      * @param methodName the method to execute (e.g. GET, PUT, PROPFIND)
